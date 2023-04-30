@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+	<style> .btn{border:1px solid black; padding:5px;display:inline-block} </style>
+	<link rel="stylesheet" href="styles.css"> <!--I ADDED-->
+</head>
+<body>
+	<div class="container">
+		<h1> NYC Top 5 Causes of Death <br> Asian and Pacific Islander Women in 2019</h1>
+			<img src="nyc.jpg" alt="nyc" id="nycpic">
+		<p>
+			The graph below illustrates New York City's 5 most common leading causes of death for Asian and Pacific Islander Women in 2019. 
+			The dataset for this graph is adapted from 
+			<a href="https://data.cityofnewyork.us/Health/New-York-City-Leading-Causes-of-Death/jb7j-dtam">NYC OpenData: New York City Leading Causes of Death</a>. 
+			It could be very useful to see what cause of death is most prevalent and how the causes of death compare with one another. 
+			It may also provide public health with a potential area where they could develop and implement effective interventions 
+			for the leading causes of death.
+			<br><br>
+			Y-axis = leading cause of deaths
+			<br> 
+			X-axis = the number of deaths
+			<br>
+		</p>
+	</div>
+		<form>
+			<input type="button" value="Go" id="btn_1"> 
+		</form>
+		<br><br>
+		<div id="output"></div>
+		<br>
+		<br>
+	</div>
+</body>
+<script>
+
+/*
+New York City Leading Causes of Death
+NYC OpenData: https://data.cityofnewyork.us/Health/New-York-City-Leading-Causes-of-Death/jb7j-dtam 
+Data retreived: https://data.cityofnewyork.us/resource/jb7j-dtam.json 
+
+New York City Leading Causes of Death from NYC OpenData provides a dataset of the leading cause of
+death by sex and ethnicity in New York City. This dataset contains information about death in New 
+York City, including the death cause, sex, ethnicity, and the number of people who die.
+
+*/
+
+/*
+Original URL from image-charts testing
+
+https://image-charts.com/chart?
+chco=b2dffb|e7a4e4|ffc55c|66cccc|cc0066|ffcc00&
+chd=t:30,-60,50,140,80,-90&
+chds=-80,140&
+chs=700x700&
+cht=bvs&
+chxl=1:|Tommy|Jimmy|Henry|Marty|Lucky|Sammy&
+chxt=y,x
+
+*/
+//
+// The URL we build is to be used as the src attribute 
+// of the HTML img tag.
+// 
+
+//Supporting Functions 
+
+function getTheData(){
+
+	$.getJSON('https://data.cityofnewyork.us/resource/jb7j-dtam.json',function(result){
+		
+		console.log(' ~~~~~~~~~~ ORIGINAL DATA ~~~~~~~~~~ ');
+			console.log(result);
+
+		console.log(' ~~~~~~~~~~ Data w/ only deaths, leading cause, year, sex and race ethnicity ~~~~~~~~~~ ');
+		let newdata = []; // Cutting out the year, sex, leading cause and deaths
+        for (let i = 0; i < result.length; i++){
+            let item = []; //line items that only stores
+				item[0] = result[i]['deaths']; // # of death
+				item[1] = result[i]['leading_cause']; // cause of death
+				item[2] = result[i]['year']; // year from 2007 - 2019
+				item[3] = result[i]['sex']; // F or Female, M or Male
+				item[4] = result[i]['race_ethnicity'] // all ethnicity
+			newdata[i] = item;
+        }
+			console.log(newdata);
+			/*
+			console.log(newdata[0]);
+			console.log(newdata[0][0]);
+			console.log(newdata[0][1]);
+			console.log(newdata[0][2]);
+			console.log(newdata[0][3]);
+			console.log(newdata[0][4]);
+			*/
+		
+		console.log(' ~~~~~~~~~~ Data w/ only F or Female AND 2019  AND Asian and Pacific Islander~~~~~~~~~~ ');
+		let newdata2 = [];
+		for(let i = 0; i < newdata.length; i++){
+			if((newdata[i][3]=='Female' || newdata[i][3]=='F') && (newdata[i][2]=='2019') && (newdata[i][4] == 'Asian and Pacific Islander')){
+				let item2 = []; //line items that only stores
+					item2[0] = newdata[i][0]; // # of death
+					item2[1] = newdata[i][1]; // cause of death
+					item2[2] = newdata[i][2]; // year from 2019
+					item2[3] = newdata[i][3]; // F or Female
+					item2[4] = newdata[i][4]; // Asian and Pacific Islander
+					newdata2[i] = item2;
+			}
+		}
+			console.log(newdata2);
+
+        console.log(' ~~~~~~~~~~ New data after sorted ~~~~~~~~~~ ');
+        	newdata2.sort(function(pos1,pos2){return pos2[0]- pos1[0]}); // compare two postive value and return; positive number biggest to smallest
+        	console.log(newdata2);
+
+        plotTheChart(newdata2);
+
+    });
+}
+
+function plotTheChart(data){
+	// The biggest leading cause is position 0, 
+	// the second biggest is in postion 1, then 2, then 3 ... etc.
+
+	let imageurl = "https://image-charts.com/chart?"
+		// have to have 'ch____'     '&' notify the url to add a new parameter 
+	imageurl = imageurl + "chco=ff5555|e7a4e4|b2dffb|ffc55c|bbc55c&"
+		//chart color
+	imageurl = imageurl + "chd=t:" + data[0][0] + "," + data[1][0] + ","  + data[2][0] + ","  + data[3][0] + "," + data[4][0] + "&"
+		// y-axis -  deaths
+	imageurl = imageurl + "chds=0," +data[0][0] +  "&"
+		// can start with 0 and goes to highest amount
+	imageurl = imageurl + "chs=700x700&"
+		// image size
+	imageurl = imageurl + "cht=bhs&"
+		 // bvs --> vertical    bhs --> horizontal
+	imageurl = imageurl + "chxl=1:|" + data[0][1] + "|" +  data[1][1] + "|" +  data[2][1] + "|" +  data[3][1] + "|" +  data[4][1] + "&"
+		// x-axis - specify label
+	imageurl = imageurl + "chxt=x,y";
+	    //tell the url we want to show it
+
+
+	console.log(imageurl);
+
+	$("#output").html("<img src='" + imageurl + "'>"); 
+
+}
+
+
+//click event handlers
+
+$('#btn_1').click(function(){
+	getTheData();
+})
+
+</script>
+</html>
